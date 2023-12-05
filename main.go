@@ -126,22 +126,25 @@ func get_language_details(lang string) Lang {
 }
 
 type CLI_Flags struct {
-	day  string
-	lang string
-	dev  bool
+	day       string
+	lang      string
+	dev       bool
+	overwrite bool
 }
 
 func parse_flags() CLI_Flags {
 	day := flag.String("day", "-1", "Advent of Code Day")
 	lang := flag.String("lang", "javascript", "Language")
 	dev := flag.Bool("dev", false, "Should Dev")
+	overwrite := flag.Bool("overwrite", false, "Should Overwrite if Already Exists")
 
 	flag.Parse()
 
 	return CLI_Flags{
-		day:  *day,
-		lang: *lang,
-		dev:  *dev,
+		day:       *day,
+		lang:      *lang,
+		dev:       *dev,
+		overwrite: *overwrite,
 	}
 }
 
@@ -173,7 +176,7 @@ func main() {
 	}
 	if dirAlreadyExists {
 		fmt.Println("Directory already exists for this day")
-		if flags.dev {
+		if flags.dev || flags.overwrite {
 			fmt.Println("Removing...")
 			os.RemoveAll(newDirPath)
 		} else {

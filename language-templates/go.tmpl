@@ -1,4 +1,6 @@
 // Day {{.Day}}
+// go run .
+
 package main
 
 import (
@@ -27,13 +29,23 @@ func parse() []string {
 	return lines
 }
 
-func solve(puzzle []string) string {
+func solve_p1(puzzle []string) string {
 	// code here
 
-	return puzzle[0]
+	return "no answer provided"
+}
+
+func solve_p2(puzzle []string) string {
+	// code here
+
+	return "no answer provided"
 }
 
 func main() {
 	fmt.Println("Running Code - Day {{.Day}}")
-	fmt.Println(solve(parse()))
+
+	puzzle := parse()
+
+	fmt.Printf("Day 1: %s\n", solve_p1(puzzle))
+	fmt.Printf("Day 2: %s\n", solve_p2(puzzle))
 }

@@ -1,4 +1,5 @@
 # Day {{.Day}}
+# python3 solution.py
 
 PUZZLE_PATH = 'puzzle.txt'
 SAMPLE_PATH = 'sample.txt'
@@ -9,11 +10,20 @@ def parse():
         lines = [i.strip() for i in f.readlines()]
     return lines
 
-def solve(puzzle):
+def solve_p1(puzzle):
     # code here 
 
-    return puzzle
+    return  "no answer provided"
+
+def solve_p2(puzzle):
+    # code here 
+
+    return  "no answer provided"
 
 if __name__ == "__main__":
-    print(f'Running Code - Day {{.Day}}')
-    print(solve(parse()))
+    print('Running Code - Day {{.Day}}')
+
+    puzzle = parse()
+
+    print(f'Day 1: {solve_p1(puzzle)}')
+    print(f'Day 2: {solve_p2(puzzle)}')

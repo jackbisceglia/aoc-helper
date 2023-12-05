@@ -1,24 +1,36 @@
 // Day {{.Day}}
+// bun solution.js
 
 const PUZZLE_PATH = "puzzle.txt";
 const SAMPLE_PATH = "sample.txt";
 
 async function parse(splitLines = true) {
   // read
-  const puzzle = await Bun.file(PUZZLE_PATH).text()
+  const puzzle = await Bun.file(PUZZLE_PATH).text();
 
-  return splitLines ? puzzle.split("\n").map(line => line === "" ? "EMPTY_LINE" : line) : puzzle;
+  return puzzle.split("\n");
 }
 
-async function solve(puzzle) {
+async function solve_p1(puzzle) {
   // code here
 
-  return puzzle
+  return  "no answer provided"
+}
+
+async function solve_p2(puzzle) {
+  // code here
+
+  return  "no answer provided"
 }
 
 async function main() {
   console.log(`Running Code - Day {{.Day}}`);
-  await solve(await parse())
+
+  const puzzle = await parse();
+
+  console.log(`Day 1: ${await solve_p1(puzzle)}`);
+  console.log(`Day 2: ${await solve_p2(puzzle)}`);
 }
 
 main();
+
