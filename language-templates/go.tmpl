@@ -1,0 +1,39 @@
+// Day {{.Day}}
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+)
+
+var PUZZLE_PATH = "puzzle.txt"
+var SAMPLE_PATH = "sample.txt"
+
+func parse() []string {
+	// read
+	file, err := os.Open(PUZZLE_PATH)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines
+}
+
+func solve(puzzle []string) string {
+	// code here
+
+	return puzzle[0]
+}
+
+func main() {
+	fmt.Println("Running Code - Day {{.Day}}")
+	fmt.Println(solve(parse()))
+}

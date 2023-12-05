@@ -1,16 +1,19 @@
 # Day {{.Day}}
 
 PUZZLE_PATH = 'puzzle.txt'
+SAMPLE_PATH = 'sample.txt'
 
 def parse():
+    # read
     with open(PUZZLE_PATH) as f:
         lines = [i.strip() for i in f.readlines()]
     return lines
 
-def main():
-    puzzle = parse()
-    print(puzzle)
+def solve(puzzle):
+    # code here 
+
+    return puzzle
 
 if __name__ == "__main__":
-    print(f'Running Code - Day { {{.Day}} }')
-    main()
+    print(f'Running Code - Day {{.Day}}')
+    print(solve(parse()))

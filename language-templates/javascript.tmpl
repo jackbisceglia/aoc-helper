@@ -1,0 +1,24 @@
+// Day {{.Day}}
+
+const PUZZLE_PATH = "puzzle.txt";
+const SAMPLE_PATH = "sample.txt";
+
+async function parse(splitLines = true) {
+  // read
+  const puzzle = await Bun.file(PUZZLE_PATH).text()
+
+  return splitLines ? puzzle.split("\n").map(line => line === "" ? "EMPTY_LINE" : line) : puzzle;
+}
+
+async function solve(puzzle) {
+  // code here
+
+  return puzzle
+}
+
+async function main() {
+  console.log(`Running Code - Day {{.Day}}`);
+  await solve(await parse())
+}
+
+main();

@@ -3,12 +3,25 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"text/template"
+
+	_ "github.com/joho/godotenv/autoload"
 )
+
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
 
 type Command struct {
 	URL string
@@ -18,20 +31,8 @@ var YEAR = "2022"
 
 var cookie_slice = []http.Cookie{
 	{
-		Name:  "_ga",
-		Value: os.Getenv("_ga"),
-	},
-	{
-		Name:  "_gid",
-		Value: os.Getenv("_gid"),
-	},
-	{
 		Name:  "session",
 		Value: os.Getenv("session"),
-	},
-	{
-		Name:  "_ga_MHSNPJKWC7",
-		Value: os.Getenv("_ga2"),
 	},
 }
 
@@ -39,7 +40,27 @@ type Code struct {
 	Day string
 }
 
-func grabInput(day string) string {
+func fetchInputWithCache(day string) string {
+	// check cache
+	cachedPuzzlePath := fmt.Sprintf("puzzle-cache/%s-%s.txt", YEAR, day)
+	exists, err := exists(cachedPuzzlePath)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if exists {
+		// read file and return
+		file, err := os.ReadFile(cachedPuzzlePath)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("Using cached input")
+		return string(file)
+	}
+
 	// init client and set url
 	client := &http.Client{}
 	url := fmt.Sprintf("https://adventofcode.com/%s/day/%s/input", YEAR, day)
@@ -60,122 +81,142 @@ func grabInput(day string) string {
 		log.Fatalln(err)
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	return string(body)
-}
+	puzzle := string(body)
 
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
+	// add to cache
+	cachedPuzzleFile, err := os.Create(cachedPuzzlePath)
+	if err != nil {
+		log.Fatal(err)
 	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
+	cachedPuzzleFile.WriteString(puzzle)
 
-// dir -> /day${number}
-//			-> index.py
-//			-> puzzle.txt
+	return puzzle
+}
 
 type Lang struct {
-	extension    string
-	templateName string
+	name      string
+	extension string
 }
 
-func switchOnLang(lang string) Lang {
-
+func get_language_details(lang string) Lang {
 	switch lang {
-	case "typescript":
+	case "go":
 		return Lang{
-			extension:    "ts",
-			templateName: "typescript.templ",
+			name:      "go",
+			extension: "go",
 		}
 	case "python":
+		return Lang{
+			name:      "python",
+			extension: "py",
+		}
+	case "javascript":
 		fallthrough
 	default:
 		return Lang{
-			extension:    "py",
-			templateName: "python.templ",
+			name:      "javascript",
+			extension: "js",
 		}
+	}
+}
+
+type CLI_Flags struct {
+	day  string
+	lang string
+	dev  bool
+}
+
+func parse_flags() CLI_Flags {
+	day := flag.String("day", "-1", "Advent of Code Day")
+	lang := flag.String("lang", "javascript", "Language")
+	dev := flag.Bool("dev", false, "Should Dev")
+
+	flag.Parse()
+
+	return CLI_Flags{
+		day:  *day,
+		lang: *lang,
+		dev:  *dev,
 	}
 }
 
 func main() {
 	// setup flags
-	day := flag.String("day", "-1", "Advent of Code Day")
-	lang := flag.String("lang", "python", "Language")
-	dev := flag.Bool("dev", false, "Should Dev")
-	flag.Parse()
+	flags := parse_flags()
 
-	fmt.Printf("%s\n", *day)
+	fmt.Printf("%s\n", flags.day)
 
-	language := switchOnLang(*lang)
+	language := get_language_details(flags.lang)
+	basePathWithBackSlash := ""
+	if os.Getenv("ABS_PATH") != "" {
+		basePathWithBackSlash = os.Getenv("ABS_PATH") + "/"
+	}
 
 	// create directories and files
-	newDirName := fmt.Sprintf("day%s", *day)
-	newCodeFileName := fmt.Sprintf("%s/solution.%s", newDirName, language.extension)
-	newPuzzleFileName := fmt.Sprintf("%s/puzzle.txt", newDirName)
-
-	// dev only logging
-	if *dev {
-		fmt.Printf("dir name: %s\n", newDirName)
-		fmt.Printf("puzzle name: %s\n", newPuzzleFileName)
-		fmt.Printf("code name: %s\n", newCodeFileName)
-	}
+	newDirPath := fmt.Sprintf("%sday%s", basePathWithBackSlash, flags.day)
+	newCodeFilePath := fmt.Sprintf("%s/solution.%s", newDirPath, language.extension)
+	newPuzzleFilePath := fmt.Sprintf("%s/puzzle.txt", newDirPath)
+	newSampleFilePath := fmt.Sprintf("%s/sample.txt", newDirPath)
+	templateFileName := fmt.Sprintf("%s.tmpl", language.name)
+	templateFilePath := fmt.Sprintf("language-templates/%s", templateFileName)
 
 	// if this dir already exists, tell the user
 	// if in dev, we overwrite it, otherwise we kill the program
-	dirAlreadyExists, err := exists(newDirName)
+	dirAlreadyExists, err := exists(newDirPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if dirAlreadyExists {
 		fmt.Println("Directory already exists for this day")
-		if *dev {
+		if flags.dev {
 			fmt.Println("Removing...")
-			os.RemoveAll(newDirName)
+			os.RemoveAll(newDirPath)
 		} else {
 			fmt.Println("Please try again in a directory where this does not exist...")
 			return
 		}
 	}
 
-	if err := os.Mkdir(newDirName, os.ModePerm); err != nil {
+	if err := os.Mkdir(newDirPath, os.ModePerm); err != nil {
 		log.Fatal(err)
 	}
 
 	// grab puzzle
-	input := grabInput(*day)
+	input := fetchInputWithCache(flags.day)
+
+	// write sample
+	_, err = os.Create(newSampleFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// write puzzle
-	puzzleFile, err := os.Create(newPuzzleFileName)
+	puzzleFile, err := os.Create(newPuzzleFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	puzzleFile.WriteString(input)
 
 	// write code file file
-	file, err := os.Create(newCodeFileName)
+	codeFile, err := os.Create(newCodeFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	codeTemplate := Code{
-		Day: *day,
+	code := Code{
+		Day: flags.day,
 	}
 
-	var templateFile = language.templateFile
-	tmpl, err := template.New(templateFile).ParseFiles(templateFile)
+	tmpl, err := template.New(templateFileName).ParseFiles(templateFilePath)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(templateFile, codeTemplate)
+	err = tmpl.Execute(codeFile, code)
 	if err != nil {
 		panic(err)
 	}
