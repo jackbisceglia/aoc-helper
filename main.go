@@ -27,7 +27,7 @@ type Command struct {
 	URL string
 }
 
-var YEAR = "2022"
+var YEAR = "2023"
 
 var cookie_slice = []http.Cookie{
 	{
