@@ -23,3 +23,6 @@ Flags
 - -lang -> accepts `python`, `golang`, `javascript`
 - -day -> accepts any day number (only enter days that are available please)
 - -overwrite -> include if you would like to overwrite the existing directory if one exists
+
+
+**note**: if you improperly configure your session .env variable (ie. the `puzzle.txt` comes back with text telling you to sign in), be sure to delete the file(s) created in `/puzzle-cache` so that subsequent runs won't use the incorrect cached result
